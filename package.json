@@ -1,0 +1,14 @@
+{
+  "name": "harodef",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "הרודף — online trivia chase game",
+  "scripts": {
+    "test": "vitest run",
+    "start": "npx --yes serve@14.2.4 -l 5173 ."
+  },
+  "devDependencies": {
+    "vitest": "2.1.9"
+  }
+}

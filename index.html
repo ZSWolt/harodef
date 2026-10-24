@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>הרודף · HARODEF</title>
+  <meta name="description" content="הרודף — משחק טריוויה אונליין בסגנון המרדף. פותחים לובי, מזמינים חברים, ובורחים מהרודף.">
+  <meta name="theme-color" content="#0b1022">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://0.peerjs.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400..900&display=swap">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js" defer></script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <div id="viewport">
+    <div id="stage" aria-live="off">
+      <div class="studio" aria-hidden="true"><div class="spot spot-a"></div><div class="spot spot-b"></div><div class="grain"></div></div>
+      <header id="topbar" hidden></header>
+      <main id="screen"></main>
+      <footer id="people" hidden></footer>
+      <div id="toast" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+  <div id="voices" hidden></div>
+  <noscript>המשחק צריך JavaScript כדי לעבוד.</noscript>
+</body>
+</html>
