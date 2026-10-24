@@ -487,10 +487,46 @@ h2 {
 .count-line .num { color: var(--gold); }
 .lobby-main {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto auto;
   gap: var(--s-5);
   min-height: 0;
 }
+.lobby-settings {
+  display: flex;
+  gap: var(--s-6);
+  align-items: end;
+  padding: var(--s-4) var(--s-5);
+}
+.setting {
+  display: grid;
+  gap: var(--s-2);
+}
+.setting .select {
+  min-height: 60px;
+  min-width: 380px;
+  font-size: var(--t-md);
+  cursor: pointer;
+}
+.setting .select option { background: var(--bg); color: var(--text); }
+.setting-value {
+  font-size: var(--t-md);
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+}
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  min-height: 60px;
+}
+.stepper b {
+  font-size: var(--t-lg);
+  min-width: 2ch;
+  text-align: center;
+  color: var(--gold);
+}
+.stepper .btn { min-width: 60px; font-size: var(--t-lg); padding: 0; }
 .player-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

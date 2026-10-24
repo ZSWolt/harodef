@@ -3,6 +3,8 @@ import { isCorrect, isPass } from './match.js';
 
 export const RULES = {
   MIN_PLAYERS: 8,
+  MIN_PLAYERS_FLOOR: 2, // a chaser and one contestant
+  MAX_PLAYERS: 16,
   QUALIFY_MS: 90_000,
   POINTS_PER_ANSWER: 5,
   TARGET: 40,
@@ -34,6 +36,24 @@ export class Game {
     this.phase = 'lobby';
     this.players = [];
     this.version = 0;
+    // Lobby settings the host controls. chaser is 'random' or a player id.
+    this.settings = { minPlayers: this.rules.MIN_PLAYERS, chaser: 'random' };
+  }
+
+  setSettings({ minPlayers, chaser } = {}) {
+    if (this.phase !== 'lobby') return false;
+    const next = { ...this.settings };
+    if (minPlayers !== undefined) {
+      const n = Number(minPlayers);
+      if (!Number.isInteger(n) || n < this.rules.MIN_PLAYERS_FLOOR || n > this.rules.MAX_PLAYERS) return false;
+      next.minPlayers = n;
+    }
+    if (chaser !== undefined) {
+      if (chaser !== 'random' && !this.players.some((p) => p.id === chaser)) return false;
+      next.chaser = chaser;
+    }
+    this.settings = next;
+    return this.bump();
   }
 
   // ---------- lobby ----------
@@ -49,6 +69,7 @@ export class Game {
     this.players[idx].gone = true;
     if (this.phase === 'lobby') {
       this.players.splice(idx, 1);
+      if (this.settings.chaser === id) this.settings.chaser = 'random';
       return this.bump();
     }
     if (id === this.chaserId) {
@@ -70,13 +91,14 @@ export class Game {
   }
 
   canStart() {
-    return this.phase === 'lobby' && this.players.length >= this.rules.MIN_PLAYERS;
+    return this.phase === 'lobby' && this.players.length >= Math.max(this.rules.MIN_PLAYERS_FLOOR, this.settings.minPlayers);
   }
 
   start(now) {
     if (!this.canStart()) return false;
     const ids = this.players.map((p) => p.id);
-    this.chaserId = ids[Math.floor(this.rng() * ids.length)];
+    const picked = this.settings.chaser;
+    this.chaserId = ids.includes(picked) ? picked : ids[Math.floor(this.rng() * ids.length)];
     this.order = shuffle(ids.filter((id) => id !== this.chaserId), this.rng);
     this.results = Object.fromEntries(this.order.map((id) => [id, { points: 0, status: 'waiting' }]));
     this.deckOpen = shuffle(this.open.map((_, i) => i), this.rng);
@@ -220,6 +242,7 @@ export class Game {
 
   backToLobby() {
     this.players = this.players.filter((p) => !p.gone);
+    if (!this.players.some((p) => p.id === this.settings.chaser)) this.settings.chaser = 'random';
     Object.assign(this, { phase: 'lobby', chaserId: null, order: null, results: null, duel: null, qualify: null, winner: null, deadline: null });
     return this.bump();
   }
@@ -261,7 +284,8 @@ export class Game {
       version: this.version,
       phase: this.phase,
       players: this.players.map(({ id, name, bot, gone }) => ({ id, name, bot: !!bot, gone: !!gone })),
-      minPlayers: this.rules.MIN_PLAYERS,
+      minPlayers: this.settings.minPlayers,
+      settings: { ...this.settings },
       target: this.rules.TARGET,
       board: this.rules.BOARD,
       remaining: this.deadline == null ? null : Math.max(0, this.deadline - now),

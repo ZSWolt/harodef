@@ -40,6 +40,38 @@ describe('lobby', () => {
   });
 });
 
+describe('host settings', () => {
+  it('lets the host lower or raise the minimum, within 2..16', () => {
+    const g = newGame(3);
+    expect(g.canStart()).toBe(false);
+    expect(g.setSettings({ minPlayers: 3 })).toBe(true);
+    expect(g.canStart()).toBe(true);
+    expect(g.setSettings({ minPlayers: 1 })).toBe(false);
+    expect(g.setSettings({ minPlayers: 17 })).toBe(false);
+    expect(g.settings.minPlayers).toBe(3);
+  });
+  it('uses the chaser the host picked', () => {
+    const g = newGame();
+    g.setSettings({ chaser: 'p5' });
+    g.start(0);
+    expect(g.chaserId).toBe('p5');
+    expect(g.order).not.toContain('p5');
+    expect(g.order).toHaveLength(7);
+  });
+  it('rejects unknown players and falls back to random if the pick leaves', () => {
+    const g = newGame();
+    expect(g.setSettings({ chaser: 'nobody' })).toBe(false);
+    g.setSettings({ chaser: 'p2' });
+    g.removePlayer('p2', 0);
+    expect(g.settings.chaser).toBe('random');
+  });
+  it('cannot change settings once the game started', () => {
+    const g = newGame();
+    g.start(0);
+    expect(g.setSettings({ minPlayers: 2 })).toBe(false);
+  });
+});
+
 describe('qualifying round', () => {
   it('gives 5 points per correct answer and moves to the next question', () => {
     const g = newGame();

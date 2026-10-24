@@ -509,8 +509,10 @@ export async function createStudio(canvas) {
     for (const p of alive) {
       const fig = figures.get(p.id) ?? makeFigure(p);
       const role = roleFor(v, p.id);
-      styleFigure(fig, role);
-      drawLabel(fig, p.name, p.id === me, role);
+      // A chaser picked by the host already dresses the part in the lobby line-up.
+      const look = role ?? (v.phase === 'lobby' && v.settings?.chaser === p.id ? 'chaser' : null);
+      styleFigure(fig, look);
+      drawLabel(fig, p.name, p.id === me, look);
       const lineup = v.phase === 'lobby' || (v.phase === 'draw' && !chaserShown);
       if (role === 'chaser') moveFigure(fig, PODIUM.chaser, new THREE.Vector3(-2, 0, 14));
       else if (role === 'player') moveFigure(fig, PODIUM.player, new THREE.Vector3(2, 0, 14));

@@ -12,7 +12,7 @@ import * as ui from './ui.js';
 const $ = (sel, root = document) => root.querySelector(sel);
 const params = new URLSearchParams(location.search);
 const DEV = params.has('dev');
-const MAX_PLAYERS = 16;
+const MAX_PLAYERS = RULES.MAX_PLAYERS;
 const PHASE_MS = { qualify: RULES.QUALIFY_MS, duel: RULES.DUEL_MS, choose: 20_000 };
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -338,6 +338,9 @@ function handleAction(id, a) {
     case 'start':
       if (id === ctx.me) game.start(now);
       break;
+    case 'settings':
+      if (id === ctx.me) game.setSettings({ minPlayers: a.minPlayers, chaser: a.chaser });
+      break;
     case 'answer':
       if (game.qualify && a.qid === game.qualify.asked) game.answerQualify(id, String(a.text ?? '').slice(0, 120));
       break;
@@ -574,6 +577,10 @@ stage.addEventListener('click', async (e) => {
     case 'add-bot':
       act({ type: 'add-bot' });
       break;
+    case 'min-down':
+    case 'min-up':
+      act({ type: 'settings', minPlayers: ctx.view.settings.minPlayers + (actName === 'min-up' ? 1 : -1) });
+      break;
     case 'pass':
       act({ type: 'answer', text: '', qid: ctx.view.qualify.asked });
       $('#answer')?.focus();
@@ -593,6 +600,10 @@ stage.addEventListener('click', async (e) => {
     default:
       break;
   }
+});
+
+stage.addEventListener('change', (e) => {
+  if (e.target.dataset.setting === 'chaser') act({ type: 'settings', chaser: e.target.value });
 });
 
 // Keyboard shortcuts in the duel: 1-4 or א-ד.

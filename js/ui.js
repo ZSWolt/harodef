@@ -156,15 +156,38 @@ function lobby(ctx) {
     </div>`,
   );
   for (let i = list.length; i < v.minPlayers; i++) tiles.push(`<div class="ptile empty">ממתינים לשחקן</div>`);
+  const set = v.settings;
+  const chaserName = set.chaser === 'random' ? 'הגרלה אקראית' : nameOf(v, set.chaser);
+  const settings = `<div class="lobby-settings card" data-enter>
+      <label class="setting">
+        <span class="muted small">מי יהיה הרודף?</span>
+        ${ctx.isHost
+          ? `<select class="field select" data-setting="chaser" aria-label="בחירת הרודף">
+              <option value="random" ${set.chaser === 'random' ? 'selected' : ''}>הגרלה אקראית</option>
+              ${list.map((p) => `<option value="${esc(p.id)}" ${set.chaser === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
+            </select>`
+          : `<b class="setting-value">${chaserName}</b>`}
+      </label>
+      <div class="setting">
+        <span class="muted small">מינימום שחקנים להתחלה</span>
+        ${ctx.isHost
+          ? `<div class="stepper">
+              <button class="btn btn-sm btn-ghost" data-act="min-down" aria-label="פחות שחקנים" ${set.minPlayers <= 2 ? 'disabled' : ''}>−</button>
+              <b class="num">${set.minPlayers}</b>
+              <button class="btn btn-sm btn-ghost" data-act="min-up" aria-label="יותר שחקנים" ${set.minPlayers >= 16 ? 'disabled' : ''}>+</button>
+            </div>`
+          : `<b class="setting-value num">${set.minPlayers}</b>`}
+      </div>
+    </div>`;
   return {
-    key: `lobby:${list.map((p) => p.id).join(',')}`,
+    key: `lobby:${list.map((p) => p.id).join(',')}:${set.chaser}:${set.minPlayers}`,
     html: `<section class="lobby">
       <aside class="code-block card" data-enter>
         <span class="muted">קוד הלובי</span>
         <div class="code-letters">${[...ctx.code].map((c) => `<span>${esc(c)}</span>`).join('')}</div>
         <button class="btn btn-ghost" data-act="copy-link">${icons.link()} העתקת קישור הזמנה</button>
         <ol class="rules-mini">
-          <li>שחקן אחד יוגרל להיות הרודף.</li>
+          <li>שחקן אחד הוא הרודף: בהגרלה, או לפי בחירת המארח/ת.</li>
           <li>כל שחקן מקבל 90 שניות לענות על כמה שיותר שאלות. כל תשובה נכונה = 5 נקודות. השאלה נשארת עד שעונים נכון או אומרים "דלג".</li>
           <li>מי שמגיע ל־40 נקודות עולה למרדף: 8 משבצות, 30 שניות לכל שאלה אמריקאית.</li>
           <li>מגיעים למשבצת 8 לפני שהרודף תופס, ובעל הניקוד הגבוה מבין הבורחים מנצח.</li>
@@ -174,6 +197,7 @@ function lobby(ctx) {
         <p class="count-line" data-enter><span class="num">${list.length}</span> שחקנים בלובי
           <span class="muted small">${need ? `· צריך עוד ${need} כדי להתחיל` : '· אפשר להתחיל'}</span></p>
         <div class="player-grid">${tiles.join('')}</div>
+        ${settings}
         <div class="lobby-actions">
           ${ctx.isHost
             ? `<button class="btn btn-primary btn-lg" data-act="start" ${need ? 'disabled' : ''}>התחלת המשחק</button>
