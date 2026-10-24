@@ -1158,3 +1158,101 @@ button.opt:active:not(:disabled) { transform: scale(0.98); }
   .spot, .logo-track i, .listen.on .dot { animation: none; }
   .shake { animation: none; }
 }
+
+/* ---------- 3D studio layer ---------- */
+#studio3d {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  z-index: 0;
+}
+.gap3d { display: none; }
+body.has3d .studio { display: none; }
+body.has3d #stage { background: transparent; }
+body.has3d .card {
+  background: color-mix(in oklab, var(--surface) 74%, transparent);
+  border-color: color-mix(in oklab, var(--line) 55%, transparent);
+}
+body.has3d #topbar,
+body.has3d #people {
+  background: linear-gradient(180deg, oklch(0.1 0.03 268 / 0.85), oklch(0.1 0.03 268 / 0.55));
+}
+body.has3d #people {
+  background: linear-gradient(0deg, oklch(0.1 0.03 268 / 0.88), oklch(0.1 0.03 268 / 0.5));
+}
+
+/* qualifying: the contestant stands on the podium in the open space above the question */
+body.has3d .q-main { grid-template-rows: 1fr auto auto auto; }
+body.has3d .gap3d { display: block; }
+body.has3d .qcard { padding: var(--s-5) var(--s-7); }
+body.has3d .qcard .qtext { font-size: 50px; max-width: 34ch; }
+body.has3d .last { background: color-mix(in oklab, var(--bg-2) 80%, transparent); }
+
+/* eliminated: the verdict sits low so the podium stays visible */
+body.has3d .verdict {
+  place-content: end center;
+  padding-bottom: var(--s-6);
+  text-shadow: 0 6px 40px oklch(0 0 0 / 0.8);
+}
+body.has3d .verdict .big { font-size: 150px; }
+
+/* draw: reel on top, order at the bottom, the chaser's podium in between */
+body.has3d .draw { grid-template-rows: auto 1fr auto; }
+body.has3d .draw .reel {
+  width: 760px;
+  height: 230px;
+  background: radial-gradient(ellipse at center, color-mix(in oklab, var(--chaser) 40%, transparent), oklch(0.12 0.04 268 / 0.75));
+}
+body.has3d .draw .reel-name { font-size: 110px; }
+body.has3d .order-list { grid-row: 3; }
+
+/* chase: the 3D board tower stands on the left, the panel on the right */
+body.has3d .choose {
+  width: 940px;
+  grid-template-rows: auto auto 1fr;
+  align-content: start;
+}
+body.has3d .choose-head h2 { font-size: var(--t-lg); }
+body.has3d .choices { grid-template-columns: 1fr; }
+body.has3d .choice { padding: var(--s-5) var(--s-6); background: color-mix(in oklab, var(--surface) 80%, transparent); }
+body.has3d .choice .c-pts { font-size: 80px; }
+body.has3d .duel {
+  width: 1080px;
+  grid-template-rows: 1fr;
+}
+body.has3d .duel-body { grid-template-columns: 1fr 300px; }
+body.has3d .duel-q { grid-template-rows: auto auto auto; align-content: center; }
+body.has3d .duel-q .qtext { font-size: 44px; }
+body.has3d .opt { background: color-mix(in oklab, var(--surface) 82%, transparent); min-height: 92px; }
+body.has3d .outcome {
+  background: radial-gradient(ellipse at center, color-mix(in oklab, var(--o) 35%, transparent), transparent 70%);
+}
+
+/* final: results on the right, the winner lit on their podium on the left */
+body.has3d .final { align-items: start; height: 100%; }
+body.has3d .final .winner { align-self: start; }
+body.has3d .final .winner .pts { display: none; }
+body.has3d .final .winner {
+  order: 2;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: var(--s-4);
+  gap: var(--s-2);
+  text-shadow: 0 6px 40px oklch(0 0 0 / 0.9);
+}
+body.has3d .winner .crown { width: 56px; height: 56px; }
+body.has3d .winner b { font-size: 60px; }
+
+/* home and lobby: panels on the right, the studio on the left */
+body.has3d .home {
+  grid-template-columns: 720px;
+  align-content: center;
+  gap: var(--s-5);
+}
+body.has3d .home .logo-word { font-size: 150px; }
+body.has3d .home .tagline { margin-top: var(--s-3); font-size: var(--t-md); text-shadow: 0 4px 24px oklch(0 0 0 / 0.8); }
+body.has3d .home .panel { padding: var(--s-6); gap: var(--s-4); }
+body.has3d .player-grid { visibility: hidden; }
+body.has3d .count-line { text-shadow: 0 4px 24px oklch(0 0 0 / 0.8); }

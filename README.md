@@ -24,6 +24,15 @@ For testing alone: `http://localhost:5173/?dev` lowers the minimum to 2 and adds
 The repo includes `.github/workflows/pages.yml`, which runs the tests and deploys on every push to `main`.
 In the repo settings: **Settings → Pages → Source: GitHub Actions**.
 
+## 3D studio
+The game runs inside a 3D studio in the style of the Israeli show "המרדף" (three.js, `js/studio3d.js`):
+- A vertical 8-step board tower in the middle of the studio. The chaser lights it red from the top, the contestant is lit blue with their points, and "home" is gold.
+- A raised podium for the chaser and a podium for the contestant, with a screen showing the name and points.
+- Every player is a colored 3D piece: lined up in front of the board in the lobby, then on the team bench. A piece glows when its player talks.
+- A camera that moves between shots: a wide studio shot, a close-up on the contestant, the board in the chase, and the winner at the end.
+- An LED wall, light beams and effects: a red flash and shake when the contestant is caught, gold confetti on an escape.
+If the computer doesn't support WebGL, the game automatically falls back to a flat look with a 2D board.
+
 ## Architecture
 - **No server:** whoever opens the lobby is the "server" (host-authoritative). The connection uses PeerJS (WebRTC, with the free public signaling server and the TURN that comes with PeerJS).
 - `js/game.js` holds all the rules as a pure state machine, with tests in `tests/`. Correct answers stay with the host until the reveal.

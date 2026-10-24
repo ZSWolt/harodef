@@ -234,6 +234,7 @@ function qualify(ctx) {
         </div>
       </aside>
       <div class="q-main">
+        <div class="gap3d" aria-hidden="true"></div>
         <div class="qcard card">
           <span class="qnum" id="q-num">שאלה <span class="num">${q.asked + 1}</span></span>
           <p class="qtext" id="q-text">${esc(q.q)}</p>
@@ -314,7 +315,7 @@ function choose(ctx) {
         <h2><b>${nameOf(v, v.currentId)}</b> עלה/תה למרדף עם <span class="num">${pts}</span> נקודות!</h2>
         ${timerRing('sm')}
       </div>
-      ${boardHtml(v, { options: [3, 5] })}
+      ${ctx.has3d ? '' : boardHtml(v, { options: [3, 5] })}
       ${mine
         ? `<div class="choices">
             <button class="choice risky" data-act="choose" data-square="3">
@@ -363,7 +364,7 @@ function duel(ctx) {
   return {
     key: `duel:${v.currentId}:${d.round}:${v.phase}:${answered || ctx.myPick != null ? 'locked' : 'open'}`,
     html: `<section class="duel">
-      <div>${boardHtml(v)}</div>
+      ${ctx.has3d ? '' : `<div>${boardHtml(v)}</div>`}
       <div class="duel-body">
         <div class="duel-q">
           <p class="qtext card" style="padding:var(--s-5) var(--s-6)">${esc(d.q)}</p>

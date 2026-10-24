@@ -51,6 +51,7 @@ const ctx = {
   savedName: load('harodef-name'),
   prefillCode: (params.get('room') ?? '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4),
   error: '',
+  has3d: false,
 };
 
 let game = null;
@@ -61,6 +62,7 @@ let current = { key: null, screen: null };
 let localDeadline = null;
 let lastVersion = -1;
 const speaking = new Set();
+let studio = null; // the 3D set; null until loaded or if WebGL is unavailable
 
 // ---------- 16:9 stage ----------
 const stage = $('#stage');
@@ -68,9 +70,29 @@ function fit() {
   const s = Math.min(innerWidth / 1920, innerHeight / 1080);
   stage.style.transform = `translate(-50%, -50%) scale(${s})`;
   stage.dataset.scale = s;
+  studio?.resize(s);
 }
 addEventListener('resize', fit);
 fit();
+
+// The 3D studio loads on its own; the game works without it (flat fallback).
+import('./studio3d.js')
+  .then((m) => m.createStudio($('#studio3d')))
+  .then((s) => {
+    studio = s;
+    ctx.has3d = true;
+    document.body.classList.add('has3d');
+    fit();
+    if (ctx.view) {
+      studio.setView(ctx.view, ctx.me);
+      current.key = null;
+      render();
+    }
+  })
+  .catch((err) => {
+    console.warn('3D studio unavailable, using the flat look.', err);
+    document.body.classList.add('no3d');
+  });
 
 // ---------- rendering ----------
 function animate(opts) {
@@ -146,6 +168,7 @@ function spinReel(screen) {
     if (wait > 340) {
       el.textContent = screen.chaserName;
       sfx.sting();
+      studio?.revealChaser();
       animate({ targets: el, scale: [1.6, 1], duration: 700, easing: 'cubicBezier(0.16, 1, 0.3, 1)' });
       animate({ targets: '#order-list li', opacity: [0, 1], translateY: [16, 0], delay: window.anime?.stagger(50, { start: 600 }) ?? 0, duration: 300, easing: 'easeOutQuad' });
       if (!window.anime) document.querySelectorAll('#order-list li').forEach((li) => (li.style.opacity = 1));
@@ -225,6 +248,7 @@ function onView(v) {
   voice?.sync(v.players);
   voice?.setBlocked(v.blocked);
   listener.set(shouldListen(v));
+  studio?.setView(v, ctx.me);
   render();
 }
 

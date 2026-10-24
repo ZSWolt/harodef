@@ -1,6 +1,6 @@
 # How the skills were used
 
-The archive `Skills.rar` contained 470 skill folders. After removing duplicates with identical content (by hash), 467 unique skills remained; the `SKILL.md` of every one was read. Below are the 38 skills that are relevant to a browser game and how each was applied. The rest are not relevant to this project (list at the bottom).
+The archive `Skills.rar` contained 470 skill folders. After removing duplicates with identical content (by hash), 467 unique skills remained; the `SKILL.md` of every one was read. Below are the 40 skills that are relevant to a browser game and how each was applied. The rest are not relevant to this project (list at the bottom).
 
 | skill | area | how it was applied |
 |---|---|---|
@@ -42,11 +42,13 @@ The archive `Skills.rar` contained 470 skill folders. After removing duplicates 
 | refactoring-patterns-2 | Code quality | Message type constants map instead of raw strings |
 | shipping-artifacts | Docs | Short architecture notes in README |
 | repo-prep | Repo hygiene | README, .gitignore, LICENSE; confirm before push/gh |
+| threejs-webgl | 3D | PBR materials (MeshStandardMaterial), ACES tone mapping and sRGB, pixel ratio capped at 2 and a 2560px buffer, InstancedMesh for the LED wall, shared geometry, no object creation inside the render loop, fixed-step timing with Clock |
+| web3d-integration-patterns | 3D + UI | Layered separation: WebGL layer (studio3d.js) under the HTML layer, synced by state (setView) and not the other way around; one owner per animated property (internal tween manager with keys); a dispose function |
 
 ## Deliberate deviations
 - **taste-skill (self-hosting fonts):** the site has no build step and sits on GitHub Pages, so Rubik is loaded from Google Fonts with `display=swap` + `preconnect`. Font payload: a single variable font.
 - **playwright-cli / web-design-guidelines:** testing was done in the built-in browser with several tabs (host + players) and with bots in `?dev` mode, instead of installing Playwright.
-- **lightweight-3d-effects-2:** not adopted. The studio backdrop is plain CSS (spotlights + grain) to keep the load light.
+- **lightweight-3d-effects-2:** replaced by a full three.js studio, at the user's request. The CSS backdrop remains as a fallback when WebGL is unavailable.
 
-## Skills not relevant to this project (429)
+## Skills not relevant to this project (427)
 Business, marketing and product strategy (lean-*, jtbd, positioning, pricing, gtm, okr, swot and so on), social content writing (post-*, newsletter, telegram), music and album production (album-*, lyric-*, suno, mastering), image and video generation (muapi-*, remotion-*, ffmpeg, nano-banana, gemini), personal and external-service integrations (gmail, zoom, linear, health, history), other stacks (React/Vue/Nuxt/Three.js/Babylon/GSAP/Tauri/Xcode), research and academic tools (academic-*, researchers-*), and tooling/meta (skill-creator, repomix, session-*). The full list of names is in the working files of the review.
