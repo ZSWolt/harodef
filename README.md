@@ -6,7 +6,7 @@ An online voice trivia game for Chrome, in the spirit of "The Chase". It's built
 1. One player opens a lobby and gets a 4-letter code (or an invite link).
 2. Everyone joins with the code. Microphone access is required (headphones recommended).
 3. When there are 8 or more players, the host starts. One player is randomly drawn as **the chaser**, and the rest are put in a random order.
-4. **Qualifying round:** each contestant gets 90 seconds. Every correct answer is worth 5 points, and you need **40** to go on. You can answer out loud or by typing. A wrong answer or "skip" moves on to the next question.
+4. **Qualifying round:** each contestant gets 90 seconds. Every correct answer is worth 5 points, and you need **40** to go on. You can answer out loud or by typing. A question stays on screen until you answer it correctly or say "דלג" (skip); a wrong answer just means "try again".
 5. **Square choice:** the chaser stands on square 1 and the contestant on square 4. The contestant picks square 3 (+10 points, closer to the chaser) or square 5 (−10 points, farther away).
 6. **The chase:** a multiple-choice question with 30 seconds on the clock. A correct answer moves you forward one square; a wrong one leaves you in place. While the question is open, **the chaser and the contestant can't hear each other**, but everyone else hears both of them.
 7. Reach square 8 and you've escaped. If the chaser lands on your square, you're caught.

@@ -41,15 +41,36 @@ describe('lobby', () => {
 });
 
 describe('qualifying round', () => {
-  it('gives 5 points per correct answer and moves on after any answer', () => {
+  it('gives 5 points per correct answer and moves to the next question', () => {
     const g = newGame();
     toQualify(g);
     const first = g.qualify.q;
     g.answerQualify(g.currentId, 'נכון');
     expect(g.qualify.points).toBe(5);
     expect(g.qualify.q).not.toBe(first);
-    g.answerQualify(g.currentId, 'לא');
+    expect(g.qualify.asked).toBe(1);
+  });
+  it('keeps the same question after a wrong answer, without revealing it', () => {
+    const g = newGame();
+    toQualify(g);
+    const first = g.qualify.q;
+    expect(g.answerQualify(g.currentId, 'לא')).toBe(false);
+    expect(g.qualify.q).toBe(first);
+    expect(g.qualify.asked).toBe(0);
+    expect(g.qualify.last).toEqual({ said: 'לא', correct: false, retry: true });
+    g.answerQualify(g.currentId, 'נכון');
     expect(g.qualify.points).toBe(5);
+    expect(g.qualify.q).not.toBe(first);
+  });
+  it('moves on when the player says "דלג"', () => {
+    const g = newGame();
+    toQualify(g);
+    const first = g.qualify.q;
+    g.answerQualify(g.currentId, 'אוקיי דלג');
+    expect(g.qualify.q).not.toBe(first);
+    expect(g.qualify.points).toBe(0);
+    expect(g.qualify.last.pass).toBe(true);
+    g.answerQualify(g.currentId, '');
     expect(g.qualify.asked).toBe(2);
   });
   it('ignores answers from anyone but the contestant', () => {

@@ -1,5 +1,6 @@
 // PeerJS transport. The host's browser is the server; everyone else talks only to the host.
 /* global Peer */
+import { every } from './ticker.js';
 
 export const MSG = {
   JOIN: 'join',
@@ -32,16 +33,66 @@ function randomCode() {
 function openPeer(id) {
   return new Promise((resolve, reject) => {
     const peer = id ? new Peer(id, { debug: 0 }) : new Peer({ debug: 0 });
-    const timer = setTimeout(() => reject(Object.assign(new Error('timeout'), { type: ERR.NETWORK })), CONNECT_TIMEOUT_MS);
-    peer.once('open', () => {
+    const timer = setTimeout(() => {
+      peer.off('open', onOpen);
+      peer.off('error', onError);
+      peer.destroy();
+      reject(Object.assign(new Error('timeout'), { type: ERR.NETWORK }));
+    }, CONNECT_TIMEOUT_MS);
+    // Both listeners go away once settled: a later network blip must not destroy a live peer.
+    function onOpen() {
       clearTimeout(timer);
+      peer.off('error', onError);
+      keepSignaling(peer);
       resolve(peer);
-    });
-    peer.once('error', (err) => {
+    }
+    function onError(err) {
       clearTimeout(timer);
+      peer.off('open', onOpen);
       peer.destroy();
       reject(err);
-    });
+    }
+    peer.once('open', onOpen);
+    peer.once('error', onError);
+  });
+}
+
+// The PeerJS server drops sockets whose heartbeat stops (a throttled background tab, a network
+// blip). Existing connections survive, but nobody new can reach us, so keep the heartbeat going
+// from the worker ticker and reconnect with the same id whenever the socket is lost.
+function keepSignaling(peer) {
+  let failures = 0;
+  let nextTry = 0;
+  peer.on('open', () => {
+    failures = 0;
+  });
+  peer.on('disconnected', () => {
+    failures++;
+    nextTry = Date.now() + Math.min(20_000, 500 * 2 ** Math.min(failures, 6));
+  });
+  // Errors after the first open are reported here instead of being thrown away; the reconnect
+  // loop below handles recovery.
+  peer.on('error', () => {});
+  const check = () => {
+    if (peer.destroyed) return stop();
+    if (peer.disconnected) {
+      if (Date.now() >= nextTry) {
+        try {
+          peer.reconnect();
+        } catch {
+          // Destroyed meanwhile.
+        }
+      }
+    } else if (peer.open) {
+      peer.socket?._sendHeartbeat?.();
+    }
+  };
+  const stop = every(4_000, check);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      nextTry = 0;
+      check();
+    }
   });
 }
 
@@ -89,7 +140,7 @@ export async function hostRoom({ onJoin, onLeave, onAction }) {
     onLeave(id);
   }
 
-  const heartbeat = setInterval(() => {
+  const stopHeartbeat = every(HEARTBEAT_MS, () => {
     const now = Date.now();
     for (const [id, entry] of conns) {
       if (now - entry.seen > DEAD_AFTER_MS) {
@@ -99,7 +150,7 @@ export async function hostRoom({ onJoin, onLeave, onAction }) {
         entry.conn.send({ t: MSG.PING });
       }
     }
-  }, HEARTBEAT_MS);
+  });
 
   return {
     peer,
@@ -109,7 +160,7 @@ export async function hostRoom({ onJoin, onLeave, onAction }) {
       for (const { conn } of conns.values()) if (conn.open) conn.send(msg);
     },
     close() {
-      clearInterval(heartbeat);
+      stopHeartbeat();
       peer.destroy();
     },
   };
@@ -126,14 +177,14 @@ export async function joinRoom(code, name, { onState, onClosed }) {
   function close(reason) {
     if (closed) return;
     closed = true;
-    clearInterval(watchdog);
+    stopWatchdog();
     peer.destroy();
     if (accepted) onClosed(reason);
   }
 
-  const watchdog = setInterval(() => {
+  const stopWatchdog = every(HEARTBEAT_MS, () => {
     if (accepted && Date.now() - lastSeen > DEAD_AFTER_MS) close(ERR.HOST_LEFT);
-  }, HEARTBEAT_MS);
+  });
 
   await new Promise((resolve, reject) => {
     const timer = setTimeout(() => {

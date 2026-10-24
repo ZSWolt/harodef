@@ -133,3 +133,11 @@ export function choiceFromSpeech(spoken, options) {
   }
   return -1;
 }
+
+const PASS_PHRASES = ['דלג', 'תדלג', 'דילוג', 'פס', 'פאס', 'עבור', 'הלאה', 'לא יודע', 'לא יודעת', 'אין לי מושג'].map(normalize);
+
+// "דלג" and friends skip the question, alone or at the end of a sentence ("אוקיי דלג").
+export function isPass(text) {
+  const said = normalize(text);
+  return PASS_PHRASES.some((p) => said === p || said.endsWith(' ' + p));
+}

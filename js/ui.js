@@ -125,6 +125,7 @@ export function home(ctx) {
         </div>
         <p class="err" id="home-err" role="alert">${esc(ctx.error)}</p>
         <p class="note">${icons.headphones()}<span>המשחק דורש מיקרופון: עונים בקול (או מקלידים). מומלץ לשחק עם אוזניות, בכרום, ממחשב.</span></p>
+        ${ctx.isBrave ? `<p class="note">${icons.alert()}<span>ב־Brave אין זיהוי דיבור, אז עונים בהקלדה או בלחיצה. השיחה הקולית עם כולם עובדת. אם לא שומעים אתכם, כבו את ה־Shields לאתר הזה.</span></p>` : ''}
       </form>
     </section>`,
   };
@@ -164,7 +165,7 @@ function lobby(ctx) {
         <button class="btn btn-ghost" data-act="copy-link">${icons.link()} העתקת קישור הזמנה</button>
         <ol class="rules-mini">
           <li>שחקן אחד יוגרל להיות הרודף.</li>
-          <li>כל שחקן מקבל 90 שניות לענות על כמה שיותר שאלות. כל תשובה נכונה = 5 נקודות.</li>
+          <li>כל שחקן מקבל 90 שניות לענות על כמה שיותר שאלות. כל תשובה נכונה = 5 נקודות. השאלה נשארת עד שעונים נכון או אומרים "דלג".</li>
           <li>מי שמגיע ל־40 נקודות עולה למרדף: 8 משבצות, 30 שניות לכל שאלה אמריקאית.</li>
           <li>מגיעים למשבצת 8 לפני שהרודף תופס, ובעל הניקוד הגבוה מבין הבורחים מנצח.</li>
         </ol>
@@ -209,7 +210,10 @@ function segments(points, target) {
 }
 
 function lastAnswer(last) {
-  if (!last) return `<div class="last"><span class="muted">התשובות יופיעו כאן</span></div>`;
+  if (!last) return `<div class="last"><span class="muted">עונים עד שצודקים, או אומרים "דלג" כדי לעבור שאלה</span></div>`;
+  if (last.retry) {
+    return `<div class="last wrong"><span class="mark">✗</span><span>"${esc(last.said)}" · לא נכון. נסו שוב או אמרו <b>"דלג"</b></span></div>`;
+  }
   if (last.pass) {
     return `<div class="last pass"><span class="mark">–</span><span>דילוג · התשובה: <b>${esc(last.answer)}</b></span></div>`;
   }
@@ -245,7 +249,7 @@ function qualify(ctx) {
               ${listenBox(ctx)}
               <input class="field" id="answer" maxlength="80" placeholder="אפשר גם להקליד ולהקיש Enter">
               <button class="btn btn-primary" type="submit">שליחה</button>
-              <button class="btn btn-ghost" type="button" data-act="pass">דילוג</button>
+              <button class="btn btn-ghost" type="button" data-act="pass">דלג</button>
             </form>`
           : `<p class="watching">${v.chaserId === ctx.me ? 'את/ה הרודף. תקשיב/י טוב, עוד מעט תורך.' : 'מקשיבים לשחקן/ית עונה. השקט בבקשה!'}</p>`}
       </div>
@@ -254,10 +258,10 @@ function qualify(ctx) {
       root.querySelector('#q-points').textContent = q.points;
       root.querySelector('#q-segs').innerHTML = segments(q.points, v.target);
       const num = root.querySelector('#q-num .num');
+      root.querySelector('#q-last').innerHTML = lastAnswer(q.last);
       if (num.textContent !== String(q.asked + 1)) {
         num.textContent = q.asked + 1;
         root.querySelector('#q-text').textContent = q.q;
-        root.querySelector('#q-last').innerHTML = lastAnswer(q.last);
         return 'next-question';
       }
       return null;
@@ -270,7 +274,7 @@ export function listenBox(ctx) {
     listening: ['on', 'מקשיב/ה…'],
     off: ['', 'המיקרופון לא מזהה כרגע'],
     blocked: ['', 'זיהוי דיבור חסום: הקלידו'],
-    unsupported: ['', 'זיהוי דיבור לא נתמך: הקלידו'],
+    unsupported: ['', 'אין זיהוי דיבור בדפדפן הזה: הקלידו'],
   };
   const [cls, label] = states[ctx.listenState] ?? states.off;
   return `<div class="listen ${cls}" id="listen"><span class="dot"></span><span>${label}</span><span class="heard" id="heard">${esc(ctx.interim)}</span></div>`;

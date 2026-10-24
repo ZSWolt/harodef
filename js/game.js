@@ -1,5 +1,5 @@
 // The rules of הרודף as a pure state machine. Only the host runs this; clients just render publicView().
-import { isCorrect } from './match.js';
+import { isCorrect, isPass } from './match.js';
 
 export const RULES = {
   MIN_PLAYERS: 8,
@@ -104,7 +104,7 @@ export class Game {
     if (this.turn >= this.order.length) return this.finish();
     this.results[this.currentId].status = 'playing';
     this.phase = 'qualify';
-    this.qualify = { points: 0, correct: 0, asked: 0, q: this.drawOpen(), last: null };
+    this.qualify = { points: 0, correct: 0, asked: 0, tries: 0, q: this.drawOpen(), last: null };
     this.deadline = now + this.rules.QUALIFY_MS;
     return this.bump();
   }
@@ -119,13 +119,20 @@ export class Game {
     return this.deckMc.pop();
   }
 
-  // Qualifying: any answer (right or wrong) moves on to the next question, like on TV.
+  // Qualifying: a question stays up until it's answered correctly or skipped ("דלג").
+  // A wrong answer only shows "try again"; the correct answer is revealed on a skip.
   answerQualify(byId, text) {
     if (this.phase !== 'qualify' || byId !== this.currentId) return null;
     const text_ = String(text ?? '').trim();
     const q = this.open[this.qualify.q];
-    const pass = text_ === '';
+    const pass = text_ === '' || isPass(text_);
     const correct = !pass && isCorrect(text_, q.a);
+    this.qualify.tries++;
+    if (!pass && !correct) {
+      this.qualify.last = { said: text_, correct: false, retry: true };
+      this.bump();
+      return false;
+    }
     if (correct) {
       this.qualify.points += this.rules.POINTS_PER_ANSWER;
       this.qualify.correct++;
@@ -272,6 +279,7 @@ export class Game {
         asked: this.qualify.asked,
         q: this.phase === 'qualify' ? this.open[this.qualify.q].q : null,
         qid: this.qualify.asked,
+        tries: this.qualify.tries,
         last: this.qualify.last,
       };
     }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalize, isCorrect, choiceFromSpeech } from '../js/match.js';
+import { normalize, isCorrect, choiceFromSpeech, isPass } from '../js/match.js';
 
 describe('normalize', () => {
   it('strips nikud, punctuation and final letters', () => {
@@ -46,5 +46,17 @@ describe('choiceFromSpeech', () => {
   });
   it('returns -1 when unclear', () => {
     expect(choiceFromSpeech('אממ', opts)).toBe(-1);
+  });
+});
+
+describe('isPass', () => {
+  it('recognizes skip words alone or at the end', () => {
+    expect(isPass('דלג')).toBe(true);
+    expect(isPass('טוב, דלג')).toBe(true);
+    expect(isPass('לא יודעת')).toBe(true);
+  });
+  it('does not treat answers as skips', () => {
+    expect(isPass('פריז')).toBe(false);
+    expect(isPass('דלגיה')).toBe(false);
   });
 });

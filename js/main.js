@@ -3,9 +3,10 @@ import { Game, RULES } from './game.js';
 import { OPEN, MC } from './questions.js';
 import { hostRoom, joinRoom, ERR, MSG } from './net.js';
 import { Voice, requestMic, silentStream } from './voice.js';
-import { Listener, speechSupported, classifySpoken } from './speech.js';
+import { Listener, speechSupported, isBrave, classifySpoken } from './speech.js';
 import { choiceFromSpeech } from './match.js';
 import { sfx } from './sfx.js';
+import { every } from './ticker.js';
 import * as ui from './ui.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -52,6 +53,7 @@ const ctx = {
   prefillCode: (params.get('room') ?? '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4),
   error: '',
   has3d: false,
+  isBrave,
 };
 
 let game = null;
@@ -264,10 +266,10 @@ function shouldListen(v) {
 
 function playSounds(prev, v) {
   if (!prev) return;
-  if (v.phase === 'qualify' && prev.phase === 'qualify' && v.qualify.asked > prev.qualify.asked) {
+  if (v.phase === 'qualify' && prev.phase === 'qualify' && v.qualify.tries > prev.qualify.tries) {
     const last = v.qualify.last;
     if (last.correct) sfx.correct();
-    else if (!last.pass) {
+    else if (last.retry) {
       sfx.wrong();
       $('.qcard')?.classList.remove('shake');
       requestAnimationFrame(() => $('.qcard')?.classList.add('shake'));
@@ -483,13 +485,14 @@ async function startHost(name, stream) {
   game = new Game({ open: OPEN, mc: MC, rules: DEV ? { MIN_PLAYERS: 2 } : {} });
   game.addPlayer(ctx.me, name);
   voice = new Voice(room.peer, stream, onSpeaking);
-  window.harodef = { game, voice }; // console debugging
-  setInterval(() => {
+  window.harodef = { game, voice, room }; // console debugging
+  // Driven from a worker so the game keeps time even when the host's tab is in the background.
+  every(200, () => {
     const now = Date.now();
     game.tick(now);
     runBots(now);
     pump();
-  }, 200);
+  });
   pump();
 }
 
